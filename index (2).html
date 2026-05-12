@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IB Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f5f2eb;
+  --surface: #fdfaf4;
+  --surface2: #f0ebe0;
+  --ink: #1a1714;
+  --ink2: #5a5248;
+  --ink3: #9a9088;
+  --accent: #c84b2f;
+  --accent2: #e8a87c;
+  --purple: #5b4fcf;
+  --green: #2d7a4f;
+  --gold: #c49a2a;
+  --border: rgba(26,23,20,0.1);
+  --border2: rgba(26,23,20,0.06);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --shadow: 0 2px 12px rgba(26,23,20,0.08);
+  --shadow-lg: 0 8px 40px rgba(26,23,20,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 10;
+}
+
+.logo {
+  padding: 0 24px 28px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 20px;
+}
+.logo-mark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-mark span { color: var(--accent); }
+.logo-sub { font-size: 11px; color: var(--ink3); font-weight: 300; margin-top: 2px; letter-spacing: 0.04em; }
+
+.nav-group { padding: 0 12px; flex: 1; }
+.nav-label { font-size: 10px; font-weight: 500; color: var(--ink3); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 12px; margin: 16px 0 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px; font-weight: 400;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--surface2); color: var(--ink); }
+.nav-item.active { background: var(--ink); color: #fff; font-weight: 500; }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.streak-badge {
+  margin: 0 12px 20px;
+  background: linear-gradient(135deg, #c84b2f 0%, #e8a87c 100%);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  color: #fff;
+}
+.streak-badge .num { font-family: var(--font-display); font-size: 28px; line-height: 1; }
+.streak-badge .lbl { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.streak-badge .sub { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+
+/* ── MAIN CONTENT ── */
+.main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+.page { display: none; flex: 1; padding: 40px 48px; }
+.page.active { display: flex; flex-direction: column; }
+
+.page-header { margin-bottom: 32px; }
+.page-title { font-family: var(--font-display); font-size: 34px; color: var(--ink); line-height: 1.15; }
+.page-title em { color: var(--accent); font-style: italic; }
+.page-sub { font-size: 14px; color: var(--ink3); margin-top: 6px; }
+
+/* ── QUIZ ── */
+.quiz-wrap { max-width: 640px; }
+.quiz-progress { display: flex; gap: 6px; margin-bottom: 40px; }
+.quiz-dot { flex: 1; height: 3px; background: var(--border); border-radius: 2px; transition: background 0.3s; }
+.quiz-dot.done { background: var(--accent); }
+.quiz-dot.active { background: var(--accent2); }
+
+.quiz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px;
+  box-shadow: var(--shadow);
+}
+.quiz-step { font-size: 11px; color: var(--ink3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 12px; }
+.quiz-q { font-family: var(--font-display); font-size: 24px; line-height: 1.3; color: var(--ink); margin-bottom: 8px; }
+.quiz-hint { font-size: 13px; color: var(--ink3); margin-bottom: 28px; }
+
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-opt {
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px; color: var(--ink2);
+  cursor: pointer; text-align: left;
+  background: var(--bg);
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.quiz-opt:hover { border-color: var(--accent2); background: var(--surface); color: var(--ink); }
+.quiz-opt.selected { border-color: var(--accent); background: #fdf0ec; color: var(--accent); font-weight: 500; }
+
+.quiz-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; }
+.btn {
+  padding: 11px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; font-family: var(--font-body);
+  cursor: pointer; border: none;
+  transition: all 0.15s;
+}
+.btn-dark { background: var(--ink); color: #fff; }
+.btn-dark:hover { background: #2d2a26; }
+.btn-dark:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--ink2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--surface2); }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-accent:hover { background: #b03d23; }
+
+/* ── RESULT ── */
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  max-width: 600px;
+  box-shadow: var(--shadow-lg);
+}
+.result-type {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 13px; font-weight: 500;
+  margin-bottom: 20px;
+}
+.result-name { font-family: var(--font-display); font-size: 32px; line-height: 1.2; margin-bottom: 12px; }
+.result-desc { font-size: 14px; color: var(--ink2); line-height: 1.7; margin-bottom: 28px; }
+.result-features { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.result-feat {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px; color: var(--ink2);
+}
+.feat-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── PLANNER ── */
+.planner-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  flex: 1;
+}
+
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-family: var(--font-display); font-size: 20px; }
+.section-label { font-size: 11px; font-weight: 500; color: var(--ink3); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.mode-pills { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.pill {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink2);
+  transition: all 0.15s;
+}
+.pill.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.task-section { margin-bottom: 20px; }
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+.task-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.task-row:hover { border-color: var(--border); background: var(--surface2); }
+.task-row.done { opacity: 0.55; }
+.task-check {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid var(--ink3);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s;
+}
+.task-check.checked { background: var(--green); border-color: var(--green); }
+.task-check.checked::after { content: ''; display: block; width: 6px; height: 6px; background: #fff; border-radius: 50%; }
+.task-text { flex: 1; font-size: 14px; color: var(--ink); }
+.task-row.done .task-text { text-decoration: line-through; color: var(--ink3); }
+.task-remove {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: none; background: transparent; color: var(--ink3);
+  font-size: 16px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; opacity: 0; transition: all 0.15s;
+  padding: 0;
+}
+.task-row:hover .task-remove { opacity: 1; }
+.task-remove:hover { background: #fce8e8; color: var(--accent); }
+.subject-tag {
+  font-size: 11px; font-weight: 500; padding: 3px 9px;
+  border-radius: 100px; flex-shrink: 0;
+}
+.tag-math { background: #e8f0fe; color: #1a56c4; }
+.tag-bio  { background: #e6f4ea; color: #1a7335; }
+.tag-eng  { background: #fef3e2; color: #b35c00; }
+.tag-hist { background: #fce8e8; color: #c0392b; }
+.tag-tok  { background: #f0effe; color: #5b4fcf; }
+.tag-ee   { background: #fef9e6; color: #9a7c00; }
+.tag-chem { background: #e8f7f7; color: #0d7a6e; }
+.tag-phys { background: #fde8f5; color: #9b2d8a; }
+
+.add-row {
+  display: flex; gap: 8px; margin-top: 16px;
+}
+.add-row input, .add-row select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  outline: none;
+  transition: border 0.15s;
+}
+.add-row input { flex: 1; }
+.add-row input:focus, .add-row select:focus { border-color: var(--accent2); }
+.add-row button {
+  padding: 9px 18px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.add-row button:hover { background: #2d2a26; }
+
+/* sidebar right column */
+.sidebar-cards { display: flex; flex-direction: column; gap: 16px; }
+
+.deadline-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border2);
+}
+.deadline-item:last-child { border-bottom: none; }
+.deadline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.deadline-dot.red { background: var(--accent); }
+.deadline-dot.gold { background: var(--gold); }
+.deadline-dot.green { background: var(--green); }
+.deadline-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+.deadline-sub { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+.deadline-days {
+  margin-left: auto; font-size: 11px; font-weight: 500;
+  padding: 3px 8px; border-radius: 100px; flex-shrink: 0;
+}
+.days-red { background: #fce8e8; color: var(--accent); }
+.days-gold { background: #fef9e6; color: var(--gold); }
+.days-green { background: #e6f4ea; color: var(--green); }
+
+.focus-timer {
+  text-align: center; padding: 8px 0;
+}
+.timer-display {
+  font-family: var(--font-display); font-size: 48px; color: var(--ink);
+  letter-spacing: -1px; margin-bottom: 4px;
+}
+.timer-label { font-size: 12px; color: var(--ink3); margin-bottom: 20px; }
+.timer-ring { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; }
+.timer-ring svg { transform: rotate(-90deg); }
+.timer-ring .track { stroke: var(--border); fill: none; stroke-width: 4; }
+.timer-ring .fill { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.timer-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.timer-inner .time { font-family: var(--font-display); font-size: 26px; color: var(--ink); }
+.timer-inner .mode { font-size: 10px; color: var(--ink3); }
+.timer-btns { display: flex; gap: 8px; justify-content: center; }
+
+/* ── CHECK-IN ── */
+.checkin-wrap { max-width: 640px; }
+.mood-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+.mood-card {
+  padding: 18px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  text-align: center; cursor: pointer; transition: all 0.15s;
+  background: var(--bg);
+}
+.mood-card:hover { border-color: var(--accent2); background: var(--surface); }
+.mood-card.selected { border-color: var(--accent); background: #fdf0ec; }
+.mood-card .emoji { font-size: 28px; display: block; margin-bottom: 6px; }
+.mood-card .mood-label { font-size: 12px; font-weight: 500; color: var(--ink2); }
+.mood-card.selected .mood-label { color: var(--accent); }
+
+.checkin-field { margin-bottom: 20px; }
+.field-label { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 8px; }
+.field-label span { font-weight: 300; color: var(--ink3); }
+textarea {
+  width: 100%; padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body); font-size: 14px; color: var(--ink);
+  background: var(--surface);
+  resize: none; outline: none; line-height: 1.6;
+  transition: border 0.15s;
+}
+textarea:focus { border-color: var(--accent2); }
+
+.checkin-saved {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: 60px 40px;
+  gap: 16px;
+}
+.saved-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #e6f4ea;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.saved-title { font-family: var(--font-display); font-size: 28px; }
+.saved-sub { font-size: 14px; color: var(--ink3); line-height: 1.6; max-width: 320px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .sidebar { width: 60px; }
+  .sidebar .logo-mark span:not(:first-child), .sidebar .logo-sub, .sidebar .nav-label, .nav-item span, .sidebar .streak-badge .lbl, .sidebar .streak-badge .sub { display: none; }
+  .main { margin-left: 60px; }
+  .planner-grid { grid-template-columns: 1fr; }
+  .page { padding: 24px 20px; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.page.active { animation: fadeUp 0.25s ease; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">IB<span>•</span></div>
+    <div class="logo-sub">STUDY PLANNER</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Setup</div>
+    <button class="nav-item active" onclick="show('quiz')" id="nav-quiz">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5.5v3l2 1"/></svg>
+      <span>Style quiz</span>
+    </button>
+
+    <div class="nav-label">Daily</div>
+    <button class="nav-item" onclick="show('planner')" id="nav-planner">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M5 2v2M11 2v2M2 7h12"/></svg>
+      <span>Planner</span>
+    </button>
+    <button class="nav-item" onclick="show('checkin')" id="nav-checkin">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l3 3 7-7"/></svg>
+      <span>Check-in</span>
+    </button>
+  </div>
+
+  <div style="padding: 0 12px; margin-top: auto;">
+    <div class="streak-badge">
+      <div class="num" id="sideStreak">4</div>
+      <div class="lbl">day streak 🔥</div>
+      <div class="sub">Keep going!</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ── QUIZ PAGE ── -->
+  <div class="page active" id="page-quiz">
+    <div class="page-header">
+      <div class="page-title">Find your <em>study style.</em></div>
+      <div class="page-sub">4 questions — we'll build a planner that actually fits how you work.</div>
+    </div>
+
+    <div class="quiz-wrap">
+      <div class="quiz-progress" id="quizProgress">
+        <div class="quiz-dot active"></div>
+        <div class="quiz-dot"></div>
+        <div class="quiz-dot"></div>
+        <div class="quiz-dot"></div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-step" id="quizStep">Question 1 of 4</div>
+        <div class="quiz-q" id="quizQ"></div>
+        <div class="quiz-hint" id="quizHint"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-foot">
+          <span style="font-size:13px;color:var(--ink3)" id="quizFootNote"></span>
+          <button class="btn btn-dark" id="quizNext" onclick="nextQ()" disabled>Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RESULT PAGE ── -->
+  <div class="page" id="page-result">
+    <div class="page-header">
+      <div class="page-title">Your <em>match</em> is ready.</div>
+      <div class="page-sub">Based on how IB students actually study.</div>
+    </div>
+    <div class="result-card">
+      <div class="result-type" id="resultBadge"></div>
+      <div class="result-name" id="resultName"></div>
+      <div class="result-desc" id="resultDesc"></div>
+      <div class="result-features" id="resultFeatures"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-accent" onclick="show('planner')">Start planning →</button>
+        <button class="btn btn-ghost" onclick="restartQuiz()">Retake quiz</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PLANNER PAGE ── -->
+  <div class="page" id="page-planner">
+    <div class="page-header">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="page-title" id="plannerTitle">Today's <em>focus.</em></div>
+          <div class="page-sub" id="plannerDate"></div>
+        </div>
+        <div class="mode-pills">
+          <button class="pill active" onclick="setMode(this,'Focus')">Focus</button>
+          <button class="pill" onclick="setMode(this,'Grid')">Grid</button>
+          <button class="pill" onclick="setMode(this,'Flow')">Flow</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FOCUS MODE ══ -->
+    <div id="mode-focus" class="planner-grid">
+      <div>
+        <div class="card">
+          <div class="task-section">
+            <div class="section-label">Must do</div>
+            <div class="task-list" id="mustList"></div>
+          </div>
+          <div class="task-section">
+            <div class="section-label">Nice to do</div>
+            <div class="task-list" id="niceList"></div>
+          </div>
+          <div class="task-section">
+            <div class="section-label">Later</div>
+            <div class="task-list" id="laterList"></div>
+          </div>
+          <div class="add-row">
+            <input type="text" id="newTaskInput" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addTask()" />
+            <select id="newSubject">
+              <option value="tok">TOK</option><option value="ee">EE</option>
+              <option value="math">Math</option><option value="bio">Bio</option>
+              <option value="chem">Chem</option><option value="phys">Physics</option>
+              <option value="eng">English</option><option value="hist">History</option>
+            </select>
+            <select id="newBucket">
+              <option value="must">Must do</option>
+              <option value="nice">Nice to do</option>
+              <option value="later">Later</option>
+            </select>
+            <button onclick="addTask()">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-cards">
+        <div class="card">
+          <div class="section-head"><div class="section-title">Focus timer</div></div>
+          <div class="focus-timer">
+            <div class="timer-ring">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle class="track" cx="60" cy="60" r="52"/>
+                <circle class="fill" id="timerRing" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/>
+              </svg>
+              <div class="timer-inner">
+                <span class="time" id="timerDisplay">25:00</span>
+                <span class="mode" id="timerMode">FOCUS</span>
+              </div>
+            </div>
+            <div class="timer-btns">
+              <button class="btn btn-ghost" onclick="resetTimer()" style="font-size:13px;padding:8px 16px">Reset</button>
+              <button class="btn btn-dark" id="timerBtn" onclick="toggleTimer()" style="font-size:13px;padding:8px 20px">Start</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-head"><div class="section-title">IB deadlines</div></div>
+          <div>
+            <div class="deadline-item"><div class="deadline-dot red"></div><div><div class="deadline-name">TOK Essay Draft</div><div class="deadline-sub">Theory of Knowledge</div></div><span class="deadline-days days-red">8d</span></div>
+            <div class="deadline-item"><div class="deadline-dot gold"></div><div><div class="deadline-name">Bio IA — Final</div><div class="deadline-sub">Biology HL</div></div><span class="deadline-days days-gold">21d</span></div>
+            <div class="deadline-item"><div class="deadline-dot gold"></div><div><div class="deadline-name">Math IA Draft</div><div class="deadline-sub">Math AA HL</div></div><span class="deadline-days days-gold">34d</span></div>
+            <div class="deadline-item"><div class="deadline-dot green"></div><div><div class="deadline-name">Extended Essay</div><div class="deadline-sub">Final submission</div></div><span class="deadline-days days-green">62d</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title" style="margin-bottom:16px">Week progress</div>
+          <div id="weekProgress" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ GRID MODE ══ -->
+    <div id="mode-grid" style="display:none;flex:1;flex-direction:column;gap:20px">
+      <div class="card" style="overflow-x:auto">
+        <div style="min-width:640px">
+          <div style="display:grid;grid-template-columns:80px repeat(5,1fr);gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+            <!-- Header row -->
+            <div style="background:var(--surface2);padding:10px 8px;font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;border-right:1px solid var(--border)"></div>
+            <div style="background:var(--surface2);padding:10px 8px;font-size:12px;font-weight:500;color:var(--ink);text-align:center;border-right:1px solid var(--border)">Mon</div>
+            <div style="background:var(--surface2);padding:10px 8px;font-size:12px;font-weight:500;color:var(--ink);text-align:center;border-right:1px solid var(--border)">Tue</div>
+            <div style="background:var(--surface2);padding:10px 8px;font-size:12px;font-weight:500;color:var(--ink);text-align:center;border-right:1px solid var(--border)">Wed</div>
+            <div style="background:var(--surface2);padding:10px 8px;font-size:12px;font-weight:500;color:var(--ink);text-align:center;border-right:1px solid var(--border)">Thu</div>
+            <div style="background:var(--surface2);padding:10px 8px;font-size:12px;font-weight:500;color:var(--ink);text-align:center">Fri</div>
+            <!-- Subject rows -->
+            <div id="gridBody" style="display:contents"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="section-title" style="margin-bottom:14px">IB deadlines</div>
+          <div class="deadline-item"><div class="deadline-dot red"></div><div><div class="deadline-name">TOK Essay Draft</div><div class="deadline-sub">Theory of Knowledge</div></div><span class="deadline-days days-red">8d</span></div>
+          <div class="deadline-item"><div class="deadline-dot gold"></div><div><div class="deadline-name">Bio IA — Final</div><div class="deadline-sub">Biology HL</div></div><span class="deadline-days days-gold">21d</span></div>
+          <div class="deadline-item"><div class="deadline-dot gold"></div><div><div class="deadline-name">Math IA Draft</div><div class="deadline-sub">Math AA HL</div></div><span class="deadline-days days-gold">34d</span></div>
+          <div class="deadline-item"><div class="deadline-dot green"></div><div><div class="deadline-name">Extended Essay</div><div class="deadline-sub">Final submission</div></div><span class="deadline-days days-green">62d</span></div>
+        </div>
+        <div class="card">
+          <div class="section-title" style="margin-bottom:14px">Week progress</div>
+          <div id="weekProgressGrid" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FLOW MODE ══ -->
+    <div id="mode-flow" style="display:none;flex:1;flex-direction:column;gap:16px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;align-items:start">
+        <!-- Must Do -->
+        <div class="card" style="border-top:3px solid var(--accent)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="section-title">Must do</div>
+            <span style="font-size:11px;background:#fce8e8;color:var(--accent);padding:3px 9px;border-radius:100px;font-weight:500" id="flowMustCount">0</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="flowMust"></div>
+        </div>
+        <!-- Nice To Do -->
+        <div class="card" style="border-top:3px solid var(--gold)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="section-title">Nice to do</div>
+            <span style="font-size:11px;background:#fef9e6;color:var(--gold);padding:3px 9px;border-radius:100px;font-weight:500" id="flowNiceCount">0</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="flowNice"></div>
+        </div>
+        <!-- Later -->
+        <div class="card" style="border-top:3px solid var(--ink3)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="section-title">Later</div>
+            <span style="font-size:11px;background:var(--surface2);color:var(--ink3);padding:3px 9px;border-radius:100px;font-weight:500" id="flowLaterCount">0</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="flowLater"></div>
+        </div>
+      </div>
+      <div class="card" style="padding:16px 20px">
+        <div class="add-row" style="margin-top:0">
+          <input type="text" id="newTaskInputFlow" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addTaskFlow()" />
+          <select id="newSubjectFlow">
+            <option value="tok">TOK</option><option value="ee">EE</option>
+            <option value="math">Math</option><option value="bio">Bio</option>
+            <option value="chem">Chem</option><option value="phys">Physics</option>
+            <option value="eng">English</option><option value="hist">History</option>
+          </select>
+          <select id="newBucketFlow">
+            <option value="must">Must do</option>
+            <option value="nice">Nice to do</option>
+            <option value="later">Later</option>
+          </select>
+          <button onclick="addTaskFlow()">Add</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── CHECK-IN PAGE ── -->
+  <div class="page" id="page-checkin">
+    <div class="page-header">
+      <div class="page-title">Daily <em>check-in.</em></div>
+      <div class="page-sub">Takes 2 minutes. Builds momentum over time.</div>
+    </div>
+
+    <div class="checkin-wrap" id="checkinContent">
+      <div class="card">
+        <div style="margin-bottom:24px">
+          <div class="field-label">How are you feeling right now?</div>
+          <div class="mood-grid">
+            <div class="mood-card" onclick="selectMood(this,'burnt')">
+              <span class="emoji">😵</span>
+              <span class="mood-label">Burnt out</span>
+            </div>
+            <div class="mood-card" onclick="selectMood(this,'meh')">
+              <span class="emoji">😐</span>
+              <span class="mood-label">Meh</span>
+            </div>
+            <div class="mood-card" onclick="selectMood(this,'okay')">
+              <span class="emoji">🙂</span>
+              <span class="mood-label">Pretty good</span>
+            </div>
+            <div class="mood-card" onclick="selectMood(this,'focused')">
+              <span class="emoji">🔥</span>
+              <span class="mood-label">In the zone</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkin-field">
+          <div class="field-label">What did you get done today? <span>(be honest with yourself)</span></div>
+          <textarea id="doneText" rows="3" placeholder="e.g. Finished Bio IA section 3, did 2 past paper questions for Math HL…"></textarea>
+        </div>
+        <div class="checkin-field">
+          <div class="field-label">One thing for tomorrow <span>(just one)</span></div>
+          <textarea id="tomorrowText" rows="2" placeholder="e.g. Start TOK essay introduction, 500 words…"></textarea>
+        </div>
+        <div class="checkin-field">
+          <div class="field-label">Anything stressing you out? <span>(optional)</span></div>
+          <textarea id="stressText" rows="2" placeholder="Getting it out of your head helps…"></textarea>
+        </div>
+
+        <button class="btn btn-dark" onclick="submitCheckin()" style="width:100%;padding:13px">Save check-in</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+// ── DATA ── 
+const questions = [
+  {
+    q: "When you sit down to study for IB, what do you usually do first?",
+    hint: "Think about your last real study session.",
+    opts: [
+      "Make a prioritised list and tackle the most urgent thing",
+      "Set a timer and go deep on one subject",
+      "Map out the whole week so nothing sneaks up on me",
+      "Start with what I'm in the mood for"
+    ]
+  },
+  {
+    q: "What frustrates you most about typical study planners?",
+    hint: "This helps us fix the thing that actually breaks habits.",
+    opts: [
+      "Too rigid — I can't adapt when things shift",
+      "Too vague — I never know what I'm actually doing",
+      "They ignore IB-specific things like EEs, IAs, and TOK",
+      "They feel like more work than the studying itself"
+    ]
+  },
+  {
+    q: "You have 2 hours free. How do you study?",
+    hint: "No wrong answers — we want your natural style.",
+    opts: [
+      "Deep focus on one subject, no interruptions",
+      "Cycle through 2–3 subjects to keep energy up",
+      "Set specific goals for each subject and track them",
+      "Follow what feels productive in the moment"
+    ]
+  },
+  {
+    q: "How do you respond when a deadline creeps up on you?",
+    hint: "The IB is full of these — be real.",
+    opts: [
+      "Adjust and go — I'm used to adapting on the fly",
+      "I panic a little, then rebuild my schedule",
+      "I always have a buffer — I plan to avoid this",
+      "I work in focused bursts until it's done"
+    ]
+  }
+];
+
+const styles = {
+  focus: {
+    label: "Focus Planner", color: "#fdf0ec", textColor: "#c84b2f",
+    icon: "🎯",
+    name: "You're a deep worker.",
+    desc: "You do your best IB work in long, uninterrupted sessions. Your planner is built around 3 daily goals, Pomodoro timing, and IB deadline countdowns — no noise, just what matters.",
+    features: ["Top 3 goals per day with subject tags", "Built-in Pomodoro focus timer", "IB deadline tracker with urgency colours", "Daily progress streak to build consistency"]
+  },
+  grid: {
+    label: "Grid Planner", color: "#e8f0fe", textColor: "#1a56c4",
+    icon: "📅",
+    name: "You think in schedules.",
+    desc: "You need to see the week before you can attack the day. Your grid shows every subject colour-coded, with IB-specific slots for EE, TOK, and IA work built in.",
+    features: ["Weekly grid colour-coded by IB subject", "Dedicated EE and TOK time blocks", "Drag-and-drop rescheduling", "Subject-by-subject week progress bars"]
+  },
+  flow: {
+    label: "Flow Planner", color: "#e6f4ea", textColor: "#2d7a4f",
+    icon: "🌊",
+    name: "You follow your energy.",
+    desc: "Rigid schedules kill your motivation. Your planner uses Must Do / Nice To Do / Later buckets, mood tracking, and gentle nudges — structure without the cage.",
+    features: ["Must Do / Nice To Do / Later task buckets", "Mood-aware daily suggestions", "Streak tracking to build habits gently", "No fixed times — just forward momentum"]
+  }
+};
+
+const styleMap = [2, 1, 0, 2]; // maps first answer → style key index
+
+let curQ = 0, answers = [], selectedOpt = null;
+
+function renderQ() {
+  const q = questions[curQ];
+  document.getElementById('quizQ').textContent = q.q;
+  document.getElementById('quizHint').textContent = q.hint;
+  document.getElementById('quizStep').textContent = `Question ${curQ + 1} of ${questions.length}`;
+  document.getElementById('quizFootNote').textContent = curQ === questions.length - 1 ? 'Last question!' : '';
+
+  const dots = document.querySelectorAll('.quiz-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i < curQ) d.classList.add('done');
+    if (i === curQ) d.classList.add('active');
+  });
+
+  const opts = document.getElementById('quizOptions');
+  opts.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'quiz-opt';
+    b.textContent = o;
+    b.onclick = () => {
+      opts.querySelectorAll('.quiz-opt').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      selectedOpt = i;
+      document.getElementById('quizNext').disabled = false;
+    };
+    opts.appendChild(b);
+  });
+  document.getElementById('quizNext').disabled = true;
+  selectedOpt = null;
+}
+
+function nextQ() {
+  if (selectedOpt === null) return;
+  answers.push(selectedOpt);
+  if (curQ < questions.length - 1) { curQ++; renderQ(); }
+  else showResult();
+}
+
+function showResult() {
+  const keys = ['flow', 'grid', 'focus'];
+  const key = keys[styleMap[answers[0]]] || 'focus';
+  const s = styles[key];
+  document.getElementById('resultBadge').innerHTML = `<span style="font-size:18px">${s.icon}</span> ${s.label}`;
+  document.getElementById('resultBadge').style.cssText = `background:${s.color};color:${s.textColor};display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border-radius:100px;font-size:13px;font-weight:500;margin-bottom:20px`;
+  document.getElementById('resultName').textContent = s.name;
+  document.getElementById('resultDesc').textContent = s.desc;
+  const fl = document.getElementById('resultFeatures');
+  fl.innerHTML = '';
+  s.features.forEach(f => {
+    const li = document.createElement('div');
+    li.className = 'result-feat';
+    li.innerHTML = `<span class="feat-icon">✦</span><span>${f}</span>`;
+    fl.appendChild(li);
+  });
+  show('result');
+}
+
+function restartQuiz() { curQ = 0; answers = []; renderQ(); show('quiz'); }
+
+// ── PERSISTENCE ──
+function save() {
+  localStorage.setItem('ibp_tasks',   JSON.stringify(tasks));
+  localStorage.setItem('ibp_streak',  streak);
+  localStorage.setItem('ibp_checkin', lastCheckinDate);
+  localStorage.setItem('ibp_style',   userStyle);
+}
+
+function load() {
+  try {
+    const t = localStorage.getItem('ibp_tasks');
+    if (t) Object.assign(tasks, JSON.parse(t));
+    streak = parseInt(localStorage.getItem('ibp_streak') || '0');
+    lastCheckinDate = localStorage.getItem('ibp_checkin') || '';
+    userStyle = localStorage.getItem('ibp_style') || '';
+  } catch(e) {}
+  document.getElementById('sideStreak').textContent = streak;
+}
+
+// ── PLANNER ──
+let streak = 0, lastCheckinDate = '', userStyle = '';
+
+const tasks = {
+  must: [
+    { text: 'Bio IA — write section 3 (analysis)', subject: 'bio', done: false, example: true },
+    { text: 'Math HL — Nov 2023 past paper P2', subject: 'math', done: false, example: true },
+    { text: 'TOK essay — 200-word plan', subject: 'tok', done: false, example: true }
+  ],
+  nice: [
+    { text: 'Review History notes — Cold War', subject: 'hist', done: false, example: true },
+    { text: 'English unseen commentary practice', subject: 'eng', done: false, example: true }
+  ],
+  later: [
+    { text: 'EE — bibliography cleanup', subject: 'ee', done: false, example: true }
+  ]
+};
+
+function removeTask(bucket, i) {
+  tasks[bucket].splice(i, 1);
+  renderTasks();
+  save();
+}
+
+function renderTasks() {
+  ['must', 'nice', 'later'].forEach(bucket => {
+    const el = document.getElementById(bucket + 'List');
+    if (!el) return;
+    el.innerHTML = '';
+    tasks[bucket].forEach((t, i) => {
+      const row = document.createElement('div');
+      row.className = 'task-row' + (t.done ? ' done' : '');
+      const egLabel = t.example ? `<span style="font-size:10px;font-weight:500;color:var(--ink3);background:var(--surface2);padding:2px 6px;border-radius:4px;margin-right:6px;flex-shrink:0">eg.</span>` : '';
+      row.innerHTML = `
+        <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask('${bucket}',${i})"></div>
+        ${egLabel}<span class="task-text">${t.text}</span>
+        <span class="subject-tag tag-${t.subject}">${t.subject.toUpperCase()}</span>
+        <button class="task-remove" onclick="removeTask('${bucket}',${i})" title="Remove task">×</button>
+      `;
+      el.appendChild(row);
+    });
+  });
+  renderWeekProgress();
+}
+
+function toggleTask(bucket, i) {
+  tasks[bucket][i].done = !tasks[bucket][i].done;
+  renderTasks();
+  save();
+}
+
+function addTask() {
+  const v = document.getElementById('newTaskInput').value.trim();
+  const sub = document.getElementById('newSubject').value;
+  const bucket = document.getElementById('newBucket').value;
+  if (!v) return;
+  tasks[bucket].push({ text: v, subject: sub, done: false });
+  document.getElementById('newTaskInput').value = '';
+  renderTasks();
+  save();
+}
+
+function setMode(btn, label) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const key = label.toLowerCase();
+  document.getElementById('plannerTitle').innerHTML = `Today's <em>${key}.</em>`;
+  document.getElementById('mode-focus').style.display = key === 'focus' ? 'grid' : 'none';
+  document.getElementById('mode-grid').style.display  = key === 'grid'  ? 'flex'  : 'none';
+  document.getElementById('mode-flow').style.display  = key === 'flow'  ? 'flex'  : 'none';
+  if (key === 'grid') renderGrid();
+  if (key === 'flow') renderFlow();
+}
+
+const gridData = {
+  'Math':    ['Past paper P1','','Past paper P2','','Review'],
+  'Bio':     ['IA section 3','IA section 3','','Peer review',''],
+  'TOK':     ['','Essay plan','','Essay draft',''],
+  'English': ['Unseen practice','','Commentary','',''],
+  'History': ['Cold War notes','','Essay outline','',''],
+  'EE':      ['','Bibliography','','','Final edit'],
+};
+const subjectColors = {'Math':'#1a56c4','Bio':'#2d7a4f','TOK':'#5b4fcf','English':'#b35c00','History':'#c0392b','EE':'#9a7c00'};
+const subjectBg     = {'Math':'#e8f0fe','Bio':'#e6f4ea','TOK':'#f0effe','English':'#fef3e2','History':'#fce8e8','EE':'#fef9e6'};
+
+function renderGrid() {
+  const body = document.getElementById('gridBody');
+  body.innerHTML = '';
+  Object.entries(gridData).forEach(([subj, days]) => {
+    const labelCell = document.createElement('div');
+    labelCell.style.cssText = `font-size:11px;font-weight:500;color:${subjectColors[subj]};background:${subjectBg[subj]};padding:10px 8px;border-right:1px solid var(--border);border-top:1px solid var(--border);display:flex;align-items:center`;
+    labelCell.textContent = subj;
+    body.appendChild(labelCell);
+    days.forEach((task, di) => {
+      const cell = document.createElement('div');
+      cell.style.cssText = `padding:8px;border-top:1px solid var(--border);${di<4?'border-right:1px solid var(--border);':''}min-height:52px;background:var(--surface)`;
+      if (task) cell.innerHTML = `<div style="font-size:11px;padding:4px 7px;border-radius:4px;background:${subjectBg[subj]};color:${subjectColors[subj]};line-height:1.3">${task}</div>`;
+      body.appendChild(cell);
+    });
+  });
+  renderWeekProgressEl('weekProgressGrid');
+}
+
+function removeFlowTask(bucket, i) {
+  tasks[bucket].splice(i, 1);
+  renderFlow(); renderTasks(); save();
+}
+
+function renderFlow() {
+  ['must','nice','later'].forEach(bucket => {
+    const cap = bucket.charAt(0).toUpperCase() + bucket.slice(1);
+    const el = document.getElementById('flow' + cap);
+    const countEl = document.getElementById('flow' + cap + 'Count');
+    if (!el) return;
+    el.innerHTML = '';
+    tasks[bucket].forEach((t, i) => {
+      const card = document.createElement('div');
+      card.style.cssText = `padding:12px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);display:flex;align-items:flex-start;gap:10px`;
+      const egLabel = t.example ? `<span style="font-size:10px;font-weight:500;color:var(--ink3);background:var(--surface2);padding:2px 6px;border-radius:4px;margin-top:2px;flex-shrink:0">eg.</span>` : '';
+      card.innerHTML = `<div class="task-check ${t.done?'checked':''}" onclick="toggleFlowTask('${bucket}',${i})" style="margin-top:2px;flex-shrink:0"></div><div style="flex:1">${egLabel}<div style="font-size:13px;${t.done?'text-decoration:line-through;color:var(--ink3)':'color:var(--ink)'};line-height:1.4">${t.text}</div><span class="subject-tag tag-${t.subject}" style="margin-top:5px;display:inline-block">${t.subject.toUpperCase()}</span></div><button class="task-remove" onclick="removeFlowTask('${bucket}',${i})" title="Remove task" style="opacity:1;margin-top:1px">×</button>`;
+      el.appendChild(card);
+    });
+    if (countEl) countEl.textContent = tasks[bucket].filter(t => !t.done).length;
+  });
+}
+
+function toggleFlowTask(bucket, i) {
+  tasks[bucket][i].done = !tasks[bucket][i].done;
+  renderFlow(); renderTasks(); save();
+}
+
+function addTaskFlow() {
+  const v = document.getElementById('newTaskInputFlow').value.trim();
+  const sub = document.getElementById('newSubjectFlow').value;
+  const bucket = document.getElementById('newBucketFlow').value;
+  if (!v) return;
+  tasks[bucket].push({ text: v, subject: sub, done: false });
+  document.getElementById('newTaskInputFlow').value = '';
+  renderFlow(); renderTasks(); save();
+}
+
+function renderWeekProgressEl(id) {
+  const subjects = {'Math':{done:2,total:5,color:'#1a56c4'},'Bio':{done:3,total:4,color:'#2d7a4f'},'TOK':{done:1,total:3,color:'#5b4fcf'},'EE':{done:0,total:2,color:'#9a7c00'}};
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '';
+  Object.entries(subjects).forEach(([name, d]) => {
+    const pct = Math.round((d.done / d.total) * 100);
+    el.innerHTML += `<div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--ink2)">${name}</span><span style="font-size:12px;color:var(--ink3)">${d.done}/${d.total}</span></div><div style="height:4px;background:var(--border);border-radius:2px"><div style="width:${pct}%;height:100%;background:${d.color};border-radius:2px"></div></div></div>`;
+  });
+}
+
+function renderWeekProgress() { renderWeekProgressEl('weekProgress'); }
+
+// ── TIMER ──
+let timerSeconds = 25 * 60, timerRunning = false, timerInterval = null;
+const TOTAL = 25 * 60;
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60), s = timerSeconds % 60;
+  document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const pct = timerSeconds / TOTAL;
+  const circ = 326.7;
+  document.getElementById('timerRing').style.strokeDashoffset = circ * pct;
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerBtn').textContent = 'Resume';
+  } else {
+    timerRunning = true;
+    document.getElementById('timerBtn').textContent = 'Pause';
+    timerInterval = setInterval(() => {
+      if (timerSeconds > 0) { timerSeconds--; updateTimerDisplay(); }
+      else { clearInterval(timerInterval); timerRunning = false; document.getElementById('timerBtn').textContent = 'Start'; document.getElementById('timerMode').textContent = 'DONE ✓'; }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = TOTAL;
+  document.getElementById('timerBtn').textContent = 'Start';
+  document.getElementById('timerMode').textContent = 'FOCUS';
+  updateTimerDisplay();
+}
+
+// ── CHECK-IN ──
+let selectedMood = null;
+function selectMood(el, mood) {
+  document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMood = mood;
+}
+
+function submitCheckin() {
+  const today = new Date().toDateString();
+  if (lastCheckinDate !== today) {
+    streak += 1;
+    lastCheckinDate = today;
+    document.getElementById('sideStreak').textContent = streak;
+  }
+  save();
+  document.getElementById('checkinContent').innerHTML = `
+    <div class="checkin-saved">
+      <div class="saved-icon">✓</div>
+      <div class="saved-title">Check-in saved.</div>
+      <div class="saved-sub">That's a ${streak}-day streak. IB is a marathon, not a sprint — you're building the right habits one day at a time.</div>
+      <button class="btn btn-dark" onclick="show('planner')" style="margin-top:8px">Back to planner →</button>
+      <button class="btn btn-ghost" onclick="resetCheckin()" style="margin-top:8px">New check-in</button>
+    </div>`;
+}
+
+function resetCheckin() {
+  selectedMood = null;
+  document.getElementById('checkinContent').innerHTML = `
+    <div class="card">
+      <div style="margin-bottom:24px">
+        <div class="field-label">How are you feeling right now?</div>
+        <div class="mood-grid">
+          <div class="mood-card" onclick="selectMood(this,'burnt')"><span class="emoji">😵</span><span class="mood-label">Burnt out</span></div>
+          <div class="mood-card" onclick="selectMood(this,'meh')"><span class="emoji">😐</span><span class="mood-label">Meh</span></div>
+          <div class="mood-card" onclick="selectMood(this,'okay')"><span class="emoji">🙂</span><span class="mood-label">Pretty good</span></div>
+          <div class="mood-card" onclick="selectMood(this,'focused')"><span class="emoji">🔥</span><span class="mood-label">In the zone</span></div>
+        </div>
+      </div>
+      <div class="checkin-field">
+        <div class="field-label">What did you get done today? <span>(be honest with yourself)</span></div>
+        <textarea id="doneText" rows="3" placeholder="e.g. Finished Bio IA section 3, did 2 past paper questions for Math HL…"></textarea>
+      </div>
+      <div class="checkin-field">
+        <div class="field-label">One thing for tomorrow <span>(just one)</span></div>
+        <textarea id="tomorrowText" rows="2" placeholder="e.g. Start TOK essay introduction, 500 words…"></textarea>
+      </div>
+      <div class="checkin-field">
+        <div class="field-label">Anything stressing you out? <span>(optional)</span></div>
+        <textarea id="stressText" rows="2" placeholder="Getting it out of your head helps…"></textarea>
+      </div>
+      <button class="btn btn-dark" onclick="submitCheckin()" style="width:100%;padding:13px">Save check-in</button>
+    </div>`;
+}
+
+// ── NAV ──
+function show(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+}
+
+// ── DATE ──
+function setDate() {
+  const now = new Date();
+  const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+  document.getElementById('plannerDate').textContent = now.toLocaleDateString('en-GB', opts);
+}
+
+// ── INIT ──
+load();
+renderQ();
+renderTasks();
+updateTimerDisplay();
+setDate();
+</script>
+</body>
+</html>
